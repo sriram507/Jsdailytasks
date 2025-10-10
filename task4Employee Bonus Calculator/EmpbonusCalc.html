@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Employee Bonus Calculator</title>
+</head>
+<body>
+  <h2>Employee Bonus Calculator 💰</h2>
+  <div id="output"></div>
+
+  <script>
+    // Employee data
+    const employees = [
+      { name: "Alice", salary: 50000 },
+      { name: "Bob", salary: 40000 },
+      { name: "Charlie", salary: 60000 }
+    ];
+
+    // Function to calculate bonus using 'call'
+    function calculateBonus(percent) {
+      return this.salary * (percent / 100);
+    }
+
+    // Filter out employees earning less than 45000
+    const eligibleEmployees = employees.filter(emp => emp.salary > 45000);
+
+    // Map through eligible employees and calculate their bonuses
+    const updatedEmployees = eligibleEmployees.map(emp => {
+      const bonus = calculateBonus.call(emp, 10); // using 'call' to bind this
+      return { ...emp, bonus }; // using spread operator to add new property
+    });
+
+    // Calculate total bonus using reduce
+    const totalBonus = updatedEmployees.reduce((sum, emp) => sum + emp.bonus, 0);
+
+    // Display result using template literals
+    const resultHTML = updatedEmployees
+      .map(emp => `${emp.name} earns ₹${emp.salary} and got a bonus of ₹${emp.bonus}`)
+      .join("<br>") + `<br><br><strong>Total Bonus Given:</strong> ₹${totalBonus}`;
+
+    document.getElementById("output").innerHTML = resultHTML;
+  </script>
+</body>
+</html>
