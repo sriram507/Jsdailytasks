@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Search & Logger System</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    input { padding: 10px; width: 300px; font-size: 16px; }
+    #results { margin-top: 20px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>🔍 Smart Search & Logger System</h2>
+  <input type="text" id="searchBox" placeholder="Type something..." />
+  <div id="results">Results will appear here...</div>
+
+  <script>
+    // ========== 1️⃣ Function Currying - Custom Logger ==========
+    function logger(type) {
+      return function(message) {
+        console.log(`(${type}) - ${message}`);
+      };
+    }
+
+    const info = logger("INFO");
+    const error = logger("ERROR");
+
+    // ========== 2️⃣ Throttling Function ==========
+    function throttle(func, limit) {
+      let inThrottle;
+      return function(...args) {
+        if (!inThrottle) {
+          func.apply(this, args);
+          inThrottle = true;
+          setTimeout(() => (inThrottle = false), limit);
+        }
+      };
+    }
+
+    // ========== 3️⃣ Debouncing Function ==========
+    function debounce(func, delay) {
+      let timeout;
+      return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), delay);
+      };
+    }
+
+    // ========== 4️⃣ Simulated Database Fetch (Promise) ==========
+    function fetchSearchResults(query) {
+      return new Promise((resolve) => {
+        info("Fetching results for: " + query);
+        setTimeout(() => {
+          resolve([query.toUpperCase(), "RESULT1", "RESULT2"]);
+        }, 1000);
+      });
+    }
+
+    // ========== 5️⃣ Promise Chaining to Transform Data ==========
+    function searchHandler(query) {
+      info("Debounced search triggered");
+
+      fetchSearchResults(query)
+        .then(results => results.map(r => r.trim()))
+        .then(cleanResults => cleanResults.filter(r => r !== ""))
+        .then(finalResults => {
+          document.getElementById("results").innerText = "Results: " + finalResults.join(", ");
+        })
+        .catch(err => error("Search failed: " + err));
+    }
+
+    // ========== 6️⃣ Event Handling ==========
+    const searchBox = document.getElementById("searchBox");
+
+    const throttledLog = throttle((value) => {
+      info("Throttled keystroke: " + value);
+    }, 500);
+
+    const debouncedSearch = debounce((value) => {
+      searchHandler(value);
+    }, 1000);
+
+    searchBox.addEventListener("input", (e) => {
+      const value = e.target.value.trim();
+      if (value) {
+        throttledLog(value);
+        debouncedSearch(value);
+      }
+    });
+  </script>
+</body>
+</html>
