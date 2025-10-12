@@ -1,0 +1,112 @@
+how to get this API in the given code
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather Checker App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #87cefa, #f0f8ff);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    h2 {
+      color: #333;
+    }
+    input {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-right: 8px;
+    }
+    button {
+      padding: 10px 15px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #222;
+    }
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h2>🌤 Weather Checker</h2>
+  <div>
+    <input type="text" id="cityInput" placeholder="Enter city name" />
+    <button id="checkBtn">Check Weather</button>
+  </div>
+  <div class="result" id="result"></div>
+
+  <script>
+    const button = document.getElementById('checkBtn');
+    const result = document.getElementById('result');
+
+    const apiKey = "db1349325833677d0140fa31e9a0a128"; // Get from https://openweathermap.org/api
+
+    button.addEventListener('click', async () => {
+      const city = document.getElementById('cityInput').value.trim();
+      if (!city) {
+        result.innerHTML = "<p class='error'>❌ You must enter a city name!</p>";
+        return;
+      }
+
+    const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error("City not found or bad request!");
+        }
+
+        const data = await response.json();
+
+        // Optional chaining used here
+        const temperature = data?.main?.temp;
+        const description = data?.weather?.[0]?.description;
+
+        if (temperature === undefined || description === undefined) {
+          throw new Error("Weather data is incomplete!");
+        }
+
+        result.innerHTML = `
+          🌡 Temperature: ${temperature}°C <br>
+          🌥 Description: ${description}
+        `;
+      } catch (error) {
+        console.error(error);
+
+        // Handling different types of errors
+        if (error instanceof TypeError) {
+          result.innerHTML = "<p class='error'>Network error. Please check your connection.</p>";
+        } else if (error.message.includes("incomplete")) {
+          result.innerHTML = "<p class='error'>❌ Weather data is incomplete!</p>";
+        } else if (error.message.includes("City not found")) {
+          result.innerHTML = "<p class='error'>❌ City not found. Try again!</p>";
+        } else {
+          result.innerHTML = `<p class='error'>❌ ${error.message}</p>`;
+        }
+      }
+    });
+  </script>
+</body>
+</html>
