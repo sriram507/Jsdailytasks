@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini User Tracker App</title>
+  <style>
+    body { font-family: Arial; text-align: center; margin-top: 100px; background: #f2f4f7; }
+    h1 { color: #222; }
+    button { margin-top: 20px; padding: 10px 20px; background: #0078d7; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    button:hover { background: #005ea2; }
+  </style>
+</head>
+<body>
+
+<h1 id="greeting"></h1>
+<button id="resetBtn">Reset</button>
+
+<script>
+  // 1. Polyfill for Array.includes()
+  if (!Array.prototype.includes) {
+    Array.prototype.includes = function(value) {
+      for (let i = 0; i < this.length; i++) {
+        if (this[i] === value || (Number.isNaN(this[i]) && Number.isNaN(value))) return true;
+      }
+      return false;
+    };
+  }
+
+  // 2. User constructor
+  function User(name) { this.name = name; }
+
+  // 3. Visitor inherits from User
+  function Visitor(name, visits) {
+    User.call(this, name);
+    this.visits = visits;
+  }
+  Visitor.prototype = Object.create(User.prototype);
+  Visitor.prototype.constructor = Visitor;
+
+  // 4. Cookie functions
+  function setCookie(name, value, days) {
+    let expires = "";
+    if (days) {
+      let date = new Date();
+      date.setTime(date.getTime() + days*24*60*60*1000);
+      expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + value + expires + "; path=/";
+  }
+
+  function getCookie(name) {
+    let cookies = document.cookie.split(';');
+    for (let c of cookies) {
+      c = c.trim();
+      if (c.startsWith(name + "=")) return c.substring(name.length + 1);
+    }
+    return null;
+  }
+
+  function deleteCookie(name) { document.cookie = name + "=; Max-Age=-1; path=/"; }
+
+  // 5. Get username from localStorage or prompt
+  let userName = localStorage.getItem("userName");
+  if (!userName) {
+    userName = prompt("Enter your name:").trim();
+    while (!userName) userName = prompt("Please enter a valid name:").trim();
+    localStorage.setItem("userName", userName);
+  }
+
+  // 6. Track visits
+  let cookieKey = "visits_" + userName;
+  let visits = parseInt(getCookie(cookieKey)) || 0;
+  visits++;
+  setCookie(cookieKey, visits, 7); // expires in 7 days
+
+  // 7. Create Visitor object
+  let visitor = new Visitor(userName, visits);
+
+  // 8. Ordinal suffix function
+  function getOrdinal(n) {
+    let j = n % 10, k = n % 100;
+    if (j === 1 && k !== 11) return n + "st";
+    if (j === 2 && k !== 12) return n + "nd";
+    if (j === 3 && k !== 13) return n + "rd";
+    return n + "th";
+  }
+
+  // 9. Display greeting
+  document.getElementById("greeting").textContent =
+    `Hello ${visitor.name}, this is your ${getOrdinal(visitor.visits)} visit!`;
+
+  // 10. Reset button
+  document.getElementById("resetBtn").addEventListener("click", function() {
+    deleteCookie(cookieKey);
+    localStorage.removeItem("userName");
+    location.reload();
+  });
+</script>
+
+</body>
+</html>
